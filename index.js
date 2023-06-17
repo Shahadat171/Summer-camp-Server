@@ -3,8 +3,8 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const cors = require("cors");
 require("dotenv").config();
 const stripe = require('stripe')(process.env.PAYMENT_SECRET_KEY)
-const app = express();
 const port = process.env.PORT || 5000;
+const app = express();
 
 //midleware
 
@@ -20,6 +20,9 @@ const client = new MongoClient(uri, {
     strict: true,
     deprecationErrors: true,
   },
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  maxPoolSize: 10,
 });
 
 async function run() {
@@ -32,6 +35,7 @@ async function run() {
     const addedClassColletion = client.db("englishCenter").collection("addedClasses");
     const classColletion = client.db("englishCenter").collection("classes");
     const selectedClassColletion = client.db("englishCenter").collection("selectedClasses");
+    const enrolledClassColletion = client.db("englishCenter").collection("enrolledClasses");
 
     // app.post("/users", async (req, res) => {
     //   const users = req.body;
@@ -130,6 +134,13 @@ async function run() {
 
     })
 
+    app.post("/enrolledClass", async(req,res)=>{
+      const transaction = req.body
+      console.log(transaction)
+      const result = await enrolledClassColletion.insertOne(transaction)
+      res.send(result)
+    })
+
     app.post("/selectedClasses", async (req, res) => {
       const selectedClass = req.body;
       const result = await selectedClassColletion.insertOne(selectedClass);
@@ -156,12 +167,17 @@ async function run() {
       const result = await addedClass.toArray();
       res.send(result);
     });
+    app.get("/enrolledClass", async (req, res) => {
+      const enrolledClass = enrolledClassColletion.find()
+      const result = await enrolledClass.toArray();
+      res.send(result);
+    });
 
-    app.delete("/deleteSelectedClasses/:id", async(res, req)=>{
+    app.delete("/deleteSelectedClasses/:id", async(req,res)=>{
       const id = req.params.id;
       console.log(id)
       const query = {_id: new ObjectId(id)}
-      const result = await addedClassColletion.deleteOne(query)
+      const result = await selectedClassColletion.deleteOne(query)
       res.send(result)
     })
 
@@ -217,7 +233,7 @@ async function run() {
     });
 
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
