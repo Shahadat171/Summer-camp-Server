@@ -28,7 +28,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
     const usersColletion = client.db("englishCenter").collection("users");
     const instructorColletion = client.db("englishCenter").collection("Instructor");
@@ -181,29 +181,33 @@ async function run() {
       res.send(result)
     })
 
-    app.patch("/addedClass/admin/:id", async (req, res) => {
+    app.patch("/addedClass/approved/:id", async (req, res) => {
       const id = req.params.id
       const filter = {_id: new ObjectId(id)}
       console.log(filter)
+      console.log(await addedClassColletion.findOne(filter))
       const updateDoc = {
         $set: {
           status: 'approved'
         },
       };
-      const result = addedClassColletion.updateOne(filter,updateDoc)
+      const result = await addedClassColletion.updateOne(filter,updateDoc)
+      console.log(result)
       res.send(result);
     });
 
-    app.patch("/addedClass/admin/:id", async (req, res) => {
+    app.patch("/addedClass/denied/:id", async (req, res) => {
       const id = req.params.id
       const filter = {_id: new ObjectId(id)}
       console.log(filter)
+       console.log(await addedClassColletion.findOne(filter))
       const updateDoc = {
         $set: {
           status: 'denied'
         },
       };
-      const result = addedClassColletion.updateOne(filter,updateDoc)
+      const result = await addedClassColletion.updateOne(filter,updateDoc)
+      console.log(result)
       res.send(result);
     });
 
